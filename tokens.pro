@@ -1,4 +1,4 @@
-int
+/*int
 main
 void
 _, identifier
@@ -30,4 +30,4 @@ for
 tokenize(String, Token).
 
 token(keyword) --> 
-token(string) --> ``"`` 
+token(string) --> ``"`` */
