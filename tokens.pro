@@ -1,5 +1,4 @@
 :- [library(dcg/basics)].
-:- dynamic error/2.
 
 % keywords
 type(int,    'palabra reservada').
