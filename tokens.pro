@@ -159,14 +159,14 @@ atoms(Codes, RestAtoms):-
 %   float literal
 atoms(Codes, [Atom | RestAtoms]):-
     build(Codes, FloatCodes, RemainingCodes),
-    phrase(float(Atom), FloatCodes),
+    phrase(build_float(Atom), FloatCodes),
     !,
     atoms(RemainingCodes, RestAtoms).
  
 %   integer literal
 atoms(Codes, [Atom | RestAtoms]):-
     build(Codes, IntegerCodes, RemainingCodes),
-    phrase(integer(Atom), IntegerCodes),
+    phrase(build_integer(Atom), IntegerCodes),
     !,
     atoms(RemainingCodes, RestAtoms).
  
@@ -218,3 +218,32 @@ build([H | T], [], [H | T]):-  % special char
     special_char(H), !.
 build([H | T], [H | WordTail], Remainder):-
     build(T, WordTail, Remainder).
+
+
+%   dcg rules for integers and floats
+build_integer(I) -->
+        digit_(D0),
+        digits_(D),
+        { number_codes(I, [D0|D])
+        }.
+
+build_float(F) --> 
+    digits_(D0), 
+    [0'.], 
+    digits_(D1), 
+    { D0 \= [], 
+      D1 \= [],
+      append(D0, [0'.|D1], Codes), 
+      number_codes(F, Codes) 
+    }.
+
+digits_([D|T]) -->
+        digit_(D), !,
+        digits_(T).
+digits_([]) -->
+        [].
+
+digit_(D) -->
+        [D],
+        { code_type(D, digit)
+        }.
