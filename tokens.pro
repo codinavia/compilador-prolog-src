@@ -165,26 +165,30 @@ atoms(Codes, RestAtoms):-
     build(Codes, WordCodes, RemainingCodes),
     WordCodes = [],
     !,
+    write('>> skip empty word: '), write(Codes), nl,
     atoms(RemainingCodes, RestAtoms).
 
 %   float literal
 atoms(Codes, [Atom | RestAtoms]):-
     build(Codes, FloatCodes, RemainingCodes),
-    phrase(build_float(Atom), FloatCodes),
+    build_float(Atom, FloatCodes),
     !,
+    write('>> float literal: '), write(Atom), nl,
     atoms(RemainingCodes, RestAtoms).
 
 %   integer literal
 atoms(Codes, [Atom | RestAtoms]):-
     build(Codes, IntegerCodes, RemainingCodes),
-    phrase(build_integer(Atom), IntegerCodes),
+    build_integer(Atom, IntegerCodes),
     !,
+    write('>> integer literal: '), write(Atom), nl,
     atoms(RemainingCodes, RestAtoms).
 
 %   generic word
 atoms(Codes, [Atom | RestAtoms]):-
     build(Codes, WordCodes, RemainingCodes),
     atom_codes(Atom, WordCodes),
+    write('>> generic word: '), write(Atom), nl,
     atoms(RemainingCodes, RestAtoms).
 
 %!  buildString(+InputCodes, -WordCodes, -Remainder)
@@ -232,29 +236,28 @@ build([H | T], [H | WordTail], Remainder):-
 
 %   -------------------------------------------- dgc rules --------------------------------------------
 %   dcg rules for integers and floats
-build_integer(I) -->
+build_integer(I, [D0 | T0]):-
         digit_(D0),
-        digits_(D),
-        { number_codes(I, [D0|D])
-        }.
+        digits_(T0, D1, _),
+        number_codes(I, [D0 | D1]).
 
-build_float(F) --> 
-    digits_(D0), 
-    [0'.], 
-    digits_(D1), 
-    { D0 \= [], 
-      D1 \= [],
-      append(D0, [0'.|D1], Codes), 
-      number_codes(F, Codes) 
-    }.
+build_float(F, F0):- 
+    digits_(F0, D0, [R0 | T0]),
+    R0 =:= 46,
+    digits_(T0, D1, _), 
+    D0 \= [], 
+    D1 \= [],
+    append(D0, [R0 | D1], Codes), 
+    number_codes(F, Codes).
 
-digits_([D|T]) -->
+digits_([], [], []).
+
+digits_([46 | T], [], [46 | T]).
+
+digits_([D | T], [D | R], Rest):-
         digit_(D), !,
-        digits_(T).
-digits_([]) -->
-        [].
+        digits_(T, R, Rest).
 
-digit_(D) -->
-        [D],
-        { is_digit(D)
-        }.
+digits_(L, [], L). 
+
+digit_(D):- is_digit(D).
